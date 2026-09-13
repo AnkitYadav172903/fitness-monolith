@@ -4,25 +4,29 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
-
 @Component
 public class JwtUtils {
 
-    private String jwtSecret = "YS1zdHJpbmctc2VjcmV0LWF0LWxlYXN0LTI1Ni1iaXRzLWxvbmc=";
-    private int jwtExpirationMs = 172800000;
+    private static final Logger log = LoggerFactory.getLogger(JwtUtils.class);
+
+    private final String jwtSecret;
+    private final int jwtExpirationMs;
+
+    public JwtUtils(@Value("${jwt.secret}") String jwtSecret,
+                    @Value("${jwt.expiration-ms:172800000}") int jwtExpirationMs) {
+        this.jwtSecret = jwtSecret;
+        this.jwtExpirationMs = jwtExpirationMs;
+    }
 
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -32,41 +36,42 @@ public class JwtUtils {
         return null;
     }
 
-    public String generateToken(String userId, String role){
+    public String generateToken(String userId, String role) {
         return Jwts.builder()
                 .subject(userId)
-                .claim("roles", List.of(new SimpleGrantedAuthority(role)))
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
                 .compact();
     }
 
-    public boolean validateJwtToken(String jwtToken){
+    public boolean validateJwtToken(String jwtToken) {
         try {
-            Jwts.parser().verifyWith((SecretKey) key()).build()
+            Jwts.parser().verifyWith((javax.crypto.SecretKey) key()).build()
                     .parseSignedClaims(jwtToken);
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("Invalid JWT token: {}", e.getMessage());
+            return false;
         }
-        return true;
     }
 
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public String getUserIdFromJwtToken(String jwt){
-
-        return Jwts.parser().verifyWith((SecretKey) key())
-                .build().parseSignedClaims(jwt)
-                .getPayload().getSubject();
-    }
-
-    public Claims getAllClaims(String jwt){
-        return Jwts.parser().verifyWith((SecretKey) key())
+    public Claims getAllClaims(String jwt) {
+        return Jwts.parser().verifyWith((javax.crypto.SecretKey) key())
                 .build().parseSignedClaims(jwt).getPayload();
     }
 
+    public String getUserIdFromJwtToken(String jwt) {
+        return getAllClaims(jwt).getSubject();
+    }
 
+    public List<String> getRolesFromJwtToken(String jwt) {
+        String role = getAllClaims(jwt).get("role", String.class);
+        return role == null ? List.of() : List.of(role);
+    }
 }

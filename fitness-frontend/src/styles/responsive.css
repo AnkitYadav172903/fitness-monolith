@@ -1,0 +1,29 @@
+/* Hide Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 20px;
+}
+
+/* Smooth */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .card-padding {
+        padding: 16px;
+    }
+
+    .chart-height {
+        height: 250px;
+    }
+}

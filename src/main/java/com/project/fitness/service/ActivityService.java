@@ -2,12 +2,14 @@ package com.project.fitness.service;
 
 import com.project.fitness.dto.ActivityRequest;
 import com.project.fitness.dto.ActivityResponse;
+import com.project.fitness.exceptions.ResourceNotFoundException;
 import com.project.fitness.model.Activity;
 import com.project.fitness.model.User;
 import com.project.fitness.repository.ActivityRepository;
 import com.project.fitness.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,12 +17,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
+
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
 
-    public ActivityResponse trackActivity(ActivityRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("Invalid user: "+ request.getUserId()));
+    @Transactional
+    public ActivityResponse trackActivity(String userId, ActivityRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Activity activity = Activity.builder()
                 .user(user)
@@ -47,15 +51,13 @@ public class ActivityService {
         response.setCreatedAt(activity.getCreatedAt());
         response.setUpdatedAt(activity.getUpdatedAt());
         return response;
-
-
     }
 
+    @Transactional(readOnly = true)
     public List<ActivityResponse> getUserActivities(String userId) {
-        List<Activity> activityList = activityRepository.findByUserId(userId);
+        List<Activity> activityList = activityRepository.findByUserIdOrderByStartTimeDesc(userId);
         return activityList.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 }
-

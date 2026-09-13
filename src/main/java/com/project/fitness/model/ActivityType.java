@@ -1,7 +1,7 @@
 package com.project.fitness.model;
 
 public enum ActivityType {
-    RUNNIMG,
+    RUNNING,
     WALKING,
     CYCLING,
     SWIMMING,

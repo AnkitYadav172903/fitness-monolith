@@ -3,8 +3,10 @@ package com.project.fitness.controller;
 import com.project.fitness.dto.RecommendationRequest;
 import com.project.fitness.model.Recommendation;
 import com.project.fitness.service.RecommendationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,27 +20,28 @@ public class RecommendationController {
 
     @PostMapping("/generate")
     public ResponseEntity<Recommendation> generateRecommendation(
-            @RequestBody RecommendationRequest request){
-        Recommendation recommendation = recommendationService.generateRecommendation(request);
+            @AuthenticationPrincipal String userId,
+            @Valid @RequestBody RecommendationRequest request) {
+        Recommendation recommendation = recommendationService.generateRecommendation(userId, request);
         return ResponseEntity.ok(recommendation);
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Recommendation>> getUserRecommendation(
-            @PathVariable String userId
-    ){
-        List<Recommendation> recommendationList
-                = recommendationService.getUserRecommendation(userId);
-        return ResponseEntity.ok(recommendationList);
+            @AuthenticationPrincipal String currentUserId,
+            @PathVariable String userId) {
+        if (!currentUserId.equals(userId)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(recommendationService.getUserRecommendation(currentUserId));
     }
 
     @GetMapping("/activity/{activityId}")
     public ResponseEntity<List<Recommendation>> getActivityRecommendation(
-            @PathVariable String activityId
-    ){
+            @AuthenticationPrincipal String currentUserId,
+            @PathVariable String activityId) {
         List<Recommendation> recommendationList
-                = recommendationService.getActivityRecommendation(activityId);
+                = recommendationService.getActivityRecommendation(currentUserId, activityId);
         return ResponseEntity.ok(recommendationList);
     }
-
 }
