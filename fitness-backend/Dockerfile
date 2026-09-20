@@ -3,32 +3,25 @@ FROM maven:3.9.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-# Copy Maven wrapper and configuration first
+# Copy pom.xml first for dependency caching
 COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
 
-# Give execute permission to Maven wrapper
-RUN chmod +x mvnw
+# Download dependencies
+RUN mvn dependency:go-offline
 
-# Download dependencies (cached layer)
-RUN ./mvnw dependency:go-offline
-
-# Copy source code
+# Copy project source
 COPY src ./src
 
-# Build Spring Boot application
-RUN ./mvnw clean package -DskipTests
+# Build the application
+RUN mvn clean package -DskipTests
 
 # ---------- Runtime Stage ----------
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy generated JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Render uses port 8080 by default
 EXPOSE 8080
 
 ENV JAVA_OPTS=""
