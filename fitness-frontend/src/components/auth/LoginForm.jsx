@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { loginUser } from "../../services/authService";
@@ -69,6 +69,20 @@ function LoginForm() {
             <SubmitButton loading={isSubmitting} disabled={!isValid}>
                 {isSubmitting ? "Logging In..." : "Login"}
             </SubmitButton>
+
+            <div className="relative flex items-center justify-center">
+                <span className="absolute inset-x-0 border-t border-theme" />
+                <span className="relative px-3 text-xs text-[color:var(--text-secondary)] surface">
+                    or
+                </span>
+            </div>
+
+            <Link
+                to="/register"
+                className="block w-full text-center p-3 rounded-lg border border-blue-500 text-blue-400 font-medium hover:bg-blue-600 hover:text-white transition"
+            >
+                Create an Account
+            </Link>
         </form>
     );
 }

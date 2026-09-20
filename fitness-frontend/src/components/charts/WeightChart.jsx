@@ -8,12 +8,11 @@ import {
 } from "recharts";
 
 import useTheme from "../../hooks/useTheme";
+import { chartTheme, tooltipStyle } from "../../utils/chartTheme";
 
 export default function WeightChart({ data }) {
-    const { darkMode } = useTheme();
-
-    const textColor = darkMode ? "#CBD5E1" : "#334155";
-    const gridColor = darkMode ? "#334155" : "#E2E8F0";
+    useTheme();
+    const t = chartTheme();
 
     return (
         <div className="surface border border-theme rounded-2xl p-6">
@@ -23,13 +22,18 @@ export default function WeightChart({ data }) {
 
             <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={data}>
-                    <CartesianGrid stroke={gridColor} />
+                    <CartesianGrid stroke={t.grid} strokeDasharray="3 3" />
 
-                    <XAxis dataKey="day" stroke={textColor} />
+                    <XAxis dataKey="day" stroke={t.text} tick={{ fontSize: 12 }} />
 
-                    <Tooltip />
+                    <Tooltip {...tooltipStyle()} />
 
-                    <Bar dataKey="minutes" fill="#22C55E" radius={[8, 8, 0, 0]} />
+                    <Bar
+                        dataKey="minutes"
+                        fill={t.success}
+                        radius={[8, 8, 0, 0]}
+                        maxBarSize={42}
+                    />
                 </BarChart>
             </ResponsiveContainer>
         </div>

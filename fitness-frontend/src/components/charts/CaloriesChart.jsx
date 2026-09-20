@@ -8,12 +8,11 @@ import {
 } from "recharts";
 
 import useTheme from "../../hooks/useTheme";
+import { chartTheme, tooltipStyle } from "../../utils/chartTheme";
 
 export default function CaloriesChart({ data }) {
-    const { darkMode } = useTheme();
-
-    const textColor = darkMode ? "#CBD5E1" : "#334155";
-    const gridColor = darkMode ? "#334155" : "#E2E8F0";
+    useTheme();
+    const t = chartTheme();
 
     return (
         <div className="surface border border-theme rounded-2xl p-6">
@@ -23,17 +22,19 @@ export default function CaloriesChart({ data }) {
 
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data}>
-                    <CartesianGrid stroke={gridColor} />
+                    <CartesianGrid stroke={t.grid} strokeDasharray="3 3" />
 
-                    <XAxis dataKey="day" stroke={textColor} />
+                    <XAxis dataKey="day" stroke={t.text} tick={{ fontSize: 12 }} />
 
-                    <Tooltip />
+                    <Tooltip {...tooltipStyle()} />
 
                     <Line
                         type="monotone"
                         dataKey="calories"
-                        stroke="#F97316"
+                        stroke={t.warning}
                         strokeWidth={3}
+                        dot={{ r: 4, strokeWidth: 2, fill: t.surface }}
+                        activeDot={{ r: 6 }}
                     />
                 </LineChart>
             </ResponsiveContainer>

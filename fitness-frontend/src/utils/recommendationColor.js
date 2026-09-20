@@ -7,7 +7,7 @@ export const difficultyColor = (level) => {
         case "ADVANCED":
             return "bg-red-600";
         default:
-            return "bg-slate-600";
+            return "bg-blue-600";
     }
 };
 

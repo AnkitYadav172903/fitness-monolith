@@ -10,7 +10,8 @@ export default function Navbar({ setSidebarOpen }) {
             <div className="flex items-center gap-3">
                 <button
                     onClick={() => setSidebarOpen(true)}
-                    className="lg:hidden p-2"
+                    aria-label="Open navigation"
+                    className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl surface-secondary border border-theme"
                 >
                     <Menu className="text-[color:var(--text)]" />
                 </button>
@@ -23,12 +24,13 @@ export default function Navbar({ setSidebarOpen }) {
             <button
                 onClick={toggleTheme}
                 title="Toggle Theme"
-                className="w-10 h-10 rounded-full surface-secondary border border-theme flex items-center justify-center"
+                aria-label="Toggle theme"
+                className="w-10 h-10 rounded-full surface-secondary border border-theme flex items-center justify-center hover:bg-blue-500/10 transition"
             >
                 {darkMode ? (
-                    <Sun className="text-amber-400" />
+                    <Sun className="text-warning w-5 h-5" />
                 ) : (
-                    <Moon className="text-blue-600" />
+                    <Moon className="text-warning w-5 h-5" />
                 )}
             </button>
         </header>

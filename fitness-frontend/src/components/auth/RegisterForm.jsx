@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { registerUser } from "../../services/authService";
@@ -147,6 +147,16 @@ function RegisterForm() {
                     </div>
                 </>
             )}
+
+            <p className="text-center text-sm text-[color:var(--text-secondary)] pt-2">
+                Already have an account?{" "}
+                <Link
+                    to="/login"
+                    className="text-blue-400 hover:underline font-medium"
+                >
+                    Sign in
+                </Link>
+            </p>
         </form>
     );
 }

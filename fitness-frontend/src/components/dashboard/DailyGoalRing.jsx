@@ -1,7 +1,13 @@
+import useTheme from "../../hooks/useTheme";
+import { chartTheme } from "../../utils/chartTheme";
+
 export default function DailyGoalRing({
                                           calories,
                                           goal,
                                       }) {
+    useTheme();
+    const t = chartTheme();
+
     const percent = Math.min(
         Math.round((calories / goal) * 100),
         100
@@ -28,7 +34,7 @@ export default function DailyGoalRing({
                         cx="88"
                         cy="88"
                         r="70"
-                        stroke="#22C55E"
+                        stroke={t.primary}
                         strokeWidth="12"
                         fill="transparent"
                         strokeDasharray={440}

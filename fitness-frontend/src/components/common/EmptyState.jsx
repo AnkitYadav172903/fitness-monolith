@@ -8,7 +8,7 @@ export default function EmptyState({
         <div className="surface border border-theme rounded-3xl py-20 text-center">
             <Inbox
                 size={70}
-                className="mx-auto text-slate-500"
+                className="mx-auto text-[color:var(--text-secondary)]"
             />
 
             <h2 className="text-[color:var(--text)] text-2xl font-bold mt-6">

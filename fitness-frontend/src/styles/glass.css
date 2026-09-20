@@ -1,11 +1,11 @@
 .glass {
-    background: rgba(248, 250, 252, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(203, 213, 225, 0.6);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
 }
 
 .dark .glass {
-    background: rgba(2, 6, 23, 0.8);
-    border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    background: rgba(9, 9, 11, 0.8);
+    border-bottom: 1px solid rgba(39, 39, 42, 0.6);
 }

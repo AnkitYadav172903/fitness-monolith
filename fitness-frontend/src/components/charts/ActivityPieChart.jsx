@@ -8,13 +8,13 @@ import {
 } from "recharts";
 
 import useTheme from "../../hooks/useTheme";
-
-const COLORS = ["#2563EB", "#EA580C", "#16A34A", "#7C3AED", "#EC4899"];
+import { chartTheme, tooltipStyle } from "../../utils/chartTheme";
 
 export default function ActivityPieChart({ data }) {
-    const { darkMode } = useTheme();
+    useTheme();
+    const t = chartTheme();
 
-    const labelColor = darkMode ? "#CBD5E1" : "#334155";
+    const COLORS = [t.primary, t.info, t.success, t.warning, t.danger];
 
     return (
         <div className="surface border border-theme rounded-2xl p-6">
@@ -29,7 +29,7 @@ export default function ActivityPieChart({ data }) {
                         dataKey="value"
                         nameKey="name"
                         outerRadius={100}
-                        label={{ fill: labelColor, fontSize: 12 }}
+                        label={{ fill: t.text, fontSize: 12 }}
                     >
                         {data.map((item, index) => (
                             <Cell
@@ -39,8 +39,8 @@ export default function ActivityPieChart({ data }) {
                         ))}
                     </Pie>
 
-                    <Tooltip />
-                    <Legend wrapperStyle={{ color: labelColor }} />
+                    <Tooltip {...tooltipStyle()} />
+                    <Legend wrapperStyle={{ color: t.text, fontSize: 12 }} />
                 </PieChart>
             </ResponsiveContainer>
         </div>
