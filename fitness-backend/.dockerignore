@@ -1,0 +1,10 @@
+target/
+.mvn/
+settings.xml
+.git/
+.gitignore
+README.md
+*.iml
+.idea/
+.vscode/
+**/*.log

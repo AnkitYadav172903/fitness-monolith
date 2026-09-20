@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fitness-monolith
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    # Optional: set region, instance type, env vars, build commands, etc.
+    # region: oregon
+    # envVars:
+    #   - key: SPRING_PROFILES_ACTIVE
+    #     value: prod

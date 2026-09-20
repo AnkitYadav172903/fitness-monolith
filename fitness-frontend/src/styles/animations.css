@@ -1,0 +1,44 @@
+@keyframes fadeTheme {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-theme {
+    animation: fadeTheme 0.4s ease-in-out;
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 25px rgba(37, 99, 235, 0.25);
+}
+
+.scale-card {
+    transition: transform 0.25s;
+}
+
+.scale-card:hover {
+    transform: translateY(-6px);
+}
+
+.blur-bg {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.fade-up {
+    animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

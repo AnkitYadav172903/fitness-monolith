@@ -1,0 +1,26 @@
+# Build output
+target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Maven Wrapper (keep properties, ignore jar only)
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+buildlog.txt
+
+# Environment variables
+.env
+.env.*
+
+# Node.js (React frontend)
+node_modules/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
