@@ -1,30 +1,33 @@
-# Multi-stage Dockerfile for building and running the Spring Boot app
-# NOTE: pom.xml sets <java.version>25 — if the Temurin 25 images are unavailable, change base images to a supported JDK.
+# ---------- Build Stage ----------
+FROM maven:3.9.9-eclipse-temurin-25 AS build
 
-# Build stage: uses Maven with a JDK 25 base
-FROM maven:3.9.6-eclipse-temurin-25 AS build
 WORKDIR /app
 
-# Copy only what is needed for dependency resolution first for caching
-COPY pom.xml mvnw ./
+# Cache Maven dependencies
+COPY pom.xml .
 COPY .mvn .mvn
-COPY src ./src
+COPY mvnw .
+RUN chmod +x mvnw
+
+# Download dependencies first (better caching)
+RUN ./mvnw dependency:go-offline
+
+# Copy source code
+COPY src src
+
+# Build application
+RUN ./mvnw clean package -DskipTests
 
 
-# Package application (skip tests for faster build; adjust if you want tests)
-RUN mvn -B -DskipTests package
+# ---------- Runtime Stage ----------
+FROM eclipse-temurin:25-jre
 
-# Runtime stage: use a JRE image matching Java 25
-FROM eclipse-temurin:25-jre AS runtime
 WORKDIR /app
 
-# Copy jar produced by the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose common Spring Boot port
 EXPOSE 8080
 
 ENV JAVA_OPTS=""
 
-# Run the application (allows passing JVM options via JAVA_OPTS)
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]
