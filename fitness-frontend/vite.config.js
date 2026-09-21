@@ -66,6 +66,12 @@ export default defineConfig({
         }),
     ],
 
+    server: {
+        proxy: {
+            "/api": "http://localhost:8080",
+        },
+    },
+
     resolve: {
         dedupe: ["react", "react-dom"],
     },
