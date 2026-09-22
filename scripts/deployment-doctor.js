@@ -271,56 +271,97 @@ async function runBackendApiChecks() {
   return results;
 }
 
-async function runCorsChecks(resolvedApiUrl) {
+function splitHeaderValues(value) {
+  if (!value) return [];
+  return String(value)
+    .split(/[,\s]+/)
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+function headerAllows(value, tokens) {
+  if (!value) return false;
+  const vals = splitHeaderValues(value);
+  if (vals.includes('*')) return true;
+  const lower = vals.map((v) => v.toLowerCase());
+  return tokens.every((t) => lower.includes(String(t).toLowerCase()));
+}
+
+function originAllows(value, origin) {
+  if (!value) return false;
+  const trimmed = String(value).trim();
+  if (trimmed === '*') return true;
+  return splitHeaderValues(trimmed).includes(origin);
+}
+
+async function runCorsChecks() {
   const checks = [];
-  let origin = FRONTEND_ORIGIN;
-  let originNote = 'default (Vercel)';
-  const apiUrl = resolvedApiUrl && resolvedApiUrl.value ? String(resolvedApiUrl.value).trim() : '';
-  if (apiUrl) {
-    try {
-      const url = new URL(apiUrl);
-      if (!hostIsLocalhost(url.hostname)) {
-        origin = url.origin;
-        originNote = 'from VITE_API_BASE_URL';
-      }
-    } catch (err) {
-      originNote = 'default (Vercel) - VITE_API_BASE_URL not parseable';
-    }
-  }
-  const { res, elapsedMs, error } = await fetchWithTimeout(BACKEND_URL + '/api/health', {
+  const origin = FRONTEND_ORIGIN;
+  const preflight = await fetchWithTimeout(BACKEND_URL + '/api/auth/register', {
     method: 'OPTIONS',
     headers: {
       origin: origin,
-      'access-control-request-method': 'GET',
+      'access-control-request-method': 'POST',
       'access-control-request-headers': 'content-type, authorization'
     }
   });
-  if (error) {
-    checks.push({ name: 'CORS preflight request', pass: false, detail: 'network error: ' + error });
-    return checks;
+
+  if (preflight.error) {
+    const summary = { origin: origin, status: null, acao: null, ach: null, acm: null };
+    checks.push({
+      name: 'CORS preflight request (OPTIONS /api/auth/register)',
+      pass: false,
+      detail: 'network error: ' + preflight.error
+    });
+    return { checks, summary };
   }
-  const hdr = {
-    origin: res.headers.get('access-control-allow-origin'),
-    headers: res.headers.get('access-control-allow-headers'),
-    methods: res.headers.get('access-control-allow-methods')
-  };
+
+  const status = preflight.res.status;
+  const acao = preflight.res.headers.get('access-control-allow-origin');
+  const ach = preflight.res.headers.get('access-control-allow-headers');
+  const acm = preflight.res.headers.get('access-control-allow-methods');
+  const summary = { origin: origin, status: status, acao: acao, ach: ach, acm: acm };
+
+  const reached = status >= 200 && status < 400;
+  const originPass = originAllows(acao, origin);
+  const headersPass = headerAllows(ach, ['content-type', 'authorization']);
+  const methodsPass = headerAllows(acm, ['POST', 'OPTIONS']);
+
+  checks.push({
+    name: 'CORS preflight request (OPTIONS /api/auth/register)',
+    pass: reached,
+    detail: 'HTTP ' + status + ' in ' + Math.round(preflight.elapsedMs) + ' ms',
+    extra: reached && !(originPass && headersPass && methodsPass)
+      ? 'HTTP ' + status + ' but missing/invalid header(s): ' + [
+          !originPass ? 'Access-Control-Allow-Origin' : null,
+          !headersPass ? 'Access-Control-Allow-Headers' : null,
+          !methodsPass ? 'Access-Control-Allow-Methods' : null
+        ].filter(Boolean).join(', ')
+      : ''
+  });
+
   checks.push({
     name: 'Access-Control-Allow-Origin',
-    pass: !!hdr.origin && (hdr.origin === '*' || hdr.origin === origin || (origin && hdr.origin.split(/\s+/).includes(origin))),
-    detail: hdr.origin || 'header not present (preflight rejected)'
+    pass: originPass,
+    detail: acao ? acao : 'header not present',
+    extra: originPass ? '' : 'expected: ' + origin
   });
+
   checks.push({
     name: 'Access-Control-Allow-Headers',
-    pass: !!hdr.headers,
-    detail: hdr.headers || 'header not present'
+    pass: headersPass,
+    detail: ach ? ach : 'header not present',
+    extra: headersPass ? '' : 'must contain: content-type, authorization'
   });
+
   checks.push({
     name: 'Access-Control-Allow-Methods',
-    pass: !!hdr.methods && /\bOPTIONS\b/i.test(hdr.methods),
-    detail: hdr.methods || 'header not present'
+    pass: methodsPass,
+    detail: acm ? acm : 'header not present',
+    extra: methodsPass ? '' : 'must contain: POST, OPTIONS'
   });
-  checks[0].extra = 'tested origin: ' + origin + ' (' + originNote + '), status ' + res.status + ' in ' + elapsedMs + 'ms';
-  return checks;
+
+  return { checks, summary };
 }
 
 async function runEnvironmentChecks() {
@@ -622,7 +663,6 @@ function buildMarkdown(sections, allChecks, overall, startedAt) {
 
 async function main() {
   const startedAt = new Date();
-  const apiUrlResolve = resolveFrontendVar('VITE_API_BASE_URL');
 
   printSeparator('=', 80);
   console.log('\u{1FA7A} FITNESS MONOLITH DEPLOYMENT DOCTOR');
@@ -689,9 +729,16 @@ async function main() {
 
     console.log('');
     console.log('[C] CORS VALIDATION');
-    const corsChecks = await runCorsChecks(apiUrlResolve);
-    corsChecks.forEach((c, i) => logCheck(i, c));
-    sections.cors = corsChecks;
+    const corsResult = await runCorsChecks();
+    console.log('    Test Origin:');
+    console.log('    ' + corsResult.summary.origin);
+    console.log('    Backend:');
+    console.log('    ' + BACKEND_URL);
+    console.log('    Received ACAO: ' + (corsResult.summary.acao || '(not present)'));
+    console.log('    Result:');
+    console.log('    ' + overallFromChecks(corsResult.checks));
+    corsResult.checks.forEach((c, i) => logCheck(i, c));
+    sections.cors = corsResult.checks;
   }
 
   console.log('');
