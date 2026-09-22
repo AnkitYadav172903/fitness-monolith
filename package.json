@@ -1,0 +1,11 @@
+{
+  "name": "fitness-monolith",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Deployment Doctor tooling for the fitness-monolith project (frontend on Vercel, backend on Render, DB on Neon PostgreSQL).",
+  "scripts": {
+    "doctor": "node scripts/deployment-doctor.js",
+    "doctor:backend": "node scripts/deployment-doctor.js --backend",
+    "doctor:frontend": "node scripts/deployment-doctor.js --frontend"
+  }
+}
